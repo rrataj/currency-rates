@@ -9,7 +9,7 @@
 [![License](https://poser.pugx.org/ultraleet/currency-rates/license)](https://packagist.org/packages/ultraleet/currency-rates)
 
 
-##Added Ecb Provider
+## Added Ecb Provider
 
 I've decided to reuse this library and add new provider based on ECB: https://www.ecb.europa.eu/home/html/index.en.html
 
@@ -22,7 +22,7 @@ and for latest exchange rate:
 $result = $currencyRates->driver('ecb')->get();
 ```
 
-##ORIGINAL README :
+## ORIGINAL README :
 
 
 A PHP library for interacting with various currency exchange rates APIs. It provides a simple factory interface for constructing a wrapper for a chosen service which exposes a simple unified API for querying currency exchange rates.
