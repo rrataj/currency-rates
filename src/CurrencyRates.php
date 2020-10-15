@@ -6,6 +6,7 @@ use Ultraleet\CurrencyRates\Contracts\Factory;
 use Ultraleet\CurrencyRates\Providers\DummyProvider;
 use Ultraleet\CurrencyRates\Providers\FixerProvider;
 use Ultraleet\CurrencyRates\Providers\YahooProvider;
+use Ultraleet\CurrencyRates\Providers\EcbProvider;
 use GuzzleHttp\Client as GuzzleClient;
 use Closure;
 use InvalidArgumentException;
@@ -41,6 +42,11 @@ class CurrencyRates implements Factory
     protected function createFixerDriver()
     {
         return new FixerProvider(new GuzzleClient());
+    }
+
+    protected function createEcbDriver()
+    {
+        return new EcbProvider(new GuzzleClient());
     }
 
     /**
