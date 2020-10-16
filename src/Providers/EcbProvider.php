@@ -18,6 +18,7 @@ class EcbProvider extends AbstractProvider
     protected $base = 'EUR';
     protected $url_full = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
     protected $url = "https://www.ecb.europa.eu/stats/eurofxref";
+    protected $cache_path = __DIR__.'/';
 
     /**
      * Class constructor.
@@ -81,22 +82,33 @@ class EcbProvider extends AbstractProvider
     {
         $historical = false;
         if( $date == 'eurofxref-daily.xml' ) {
-            $url = $this->url . '/' . $date;
+            $file_name = 'eurofxref-daily.xml';
         } else {
             $historical = true;
-            $url = $this->url . '/' . 'eurofxref-hist.xml';
+            $file_name = 'eurofxref-hist.xml';
         }
+        $url = $this->url . '/' . $file_name;
         $query = [];
 
-        // query the API
-        try {
-            $response = $this->guzzle->request('GET', $url);
-        } catch (TransferException $e) {
-            throw new ConnectionException($e->getMessage());
+        // check if we have cached version and use it if it's not older than 1 hour
+        if( file_exists( $cache_path . $file_name ) && filesize( $cache_path . $file_name ) && (time()-filemtime( $cache_path . $file_name ) < 1 * 3600) ) {
+            $file = fopen( $cache_path . $file_name,'r' );
+            $xml_response = fread( $file,filesize( $cache_path . $file_name ) );
+            fclose($file);
+        } else {
+            // query the API
+            $file = fopen( $cache_path . $file_name,'w' );
+            try {
+                $response = $this->guzzle->request('GET', $url);
+                $xml_response = $response->getBody()->getContents();
+                fwrite($file,$xml_response);
+                fclose($file);
+            } catch (TransferException $e) {
+                throw new ConnectionException($e->getMessage());
+            }
         }
 
         // process response
-        $xml_response = $response->getBody()->getContents();
         $xml = simplexml_load_string($xml_response);
         $rates = array();
 
