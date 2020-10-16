@@ -22,6 +22,11 @@ and for latest exchange rate:
 $result = $currencyRates->driver('ecb')->get();
 ```
 
+This method also utilizes file cache for requests that caches them for 1h.
+It is helpful when you use many requests in short amount of time to e.g. fill in some historical data.
+
+@todo - rewrite XML parsing to use query instead of foreach loop (efficiency improvement).
+
 ## ORIGINAL README :
 
 
