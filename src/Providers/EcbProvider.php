@@ -101,11 +101,18 @@ class EcbProvider extends AbstractProvider
         $rates = array();
 
         if( $historical ) {
+            // DATES Are sorted Newest first, so the logic is how it is
             foreach ($xml->Cube->Cube as $day) {
-                // var_dump($day->Cube);exit;
                 $elements = $day;
+                // extract date
                 $day_string = (string) $day->attributes()['time'];
-                if( strtotime( $day_string ) == strtotime( $date ) ) {
+                // check for exact or next date
+                if( strtotime( $day_string ) >= strtotime( $date ) ) {
+                    // check if there is data for that day, if not - skip and use next, older day for which the data is available
+                    if( empty($elements) ) {
+                        continue;
+                    }
+                    // fetch currencies and put into array
                     foreach ($elements as $element) {
                         if( in_array( $element['currency'], $targets ) || empty( $targets ) ) {
                             $rates[ (string) $element['currency'] ] = (string)$element['rate'];
@@ -114,36 +121,26 @@ class EcbProvider extends AbstractProvider
                 }
             }
         } else {
+            // extract actual date form response
              $date = (string) $xml->Cube->Cube->attributes()['time'];
-
+            // fetch currencies and put into array
             foreach ($xml->Cube->Cube->Cube as $key => $element) {
                 if( in_array( $element['currency'], $targets ) || empty( $targets ) ) {
                     $rates[ (string) $element['currency'] ] = (string)$element['rate'];
                 }
             }
         }
-       
-
-        return new Result(
+        // check if everything is ok and return response
+        if (is_array($rates) && isset($base) && isset($date)) {
+           return new Result(
                 $base,
                 new DateTime($date),
                 $rates
             );
-
-        exit;
-
-        // @todo Add these checks later
-        // if (isset($response['rates']) && is_array($response['rates']) &&
-        //     isset($response['base']) && isset($response['date'])) {
-        //     return new Result(
-        //         $response['base'],
-        //         new DateTime($response['date']),
-        //         $response['rates']
-        //     );
-        // } elseif (isset($response['error'])) {
-        //     throw new ResponseException($response['error']);
-        // } else {
-        //     throw new ResponseException('Response body is malformed.');
-        // }
+        } elseif (isset($response['error'])) {
+            throw new ResponseException($response['error']);
+        } else {
+            throw new ResponseException('Response has no currency exchange data.');
+        }
     }
 }
